@@ -42,20 +42,20 @@ function execute(program) {
   while(true) {
     switch(program[step]) {
       case instructions['SET A']:
-        acc = 10;
-        step = 2;
+        acc = program[step + 1];
+        step += 2;
         break;
   
       case instructions['PRINT A']:
         console.log(acc);
-        step = 3;
+        step++;
         break;
   
       case instructions['IFN A']:
         if (acc === 0) {
-          step = 4;
+          step++;
         } else {
-          step = 6
+          step += 3
         }
         break;
   
@@ -64,11 +64,11 @@ function execute(program) {
   
       case instructions['DEC A']:
         acc--;
-        step = 7
+        step++;
         break;
   
       case instructions['JMP']:
-        step = 2;
+        step = program[step + 1];
         break;
     }
   }
