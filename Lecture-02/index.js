@@ -8,36 +8,21 @@ const instructions = {
 };
 
 const program = [
-  // Ставим значения аккумулятора
-  instructions['SET A'],                 //step 0
-  // В 10
-  10,                                    // step 1
-  
-  // Выводим значение на экран
-  instructions['PRINT A'],               // step 2
-  
-  // Если A равно 0
-  instructions['IFN A'],                 // step 3
-  
-  // Программа завершается
-  instructions['RET'],                   // step 4
-  
-  // И возвращает 0
-  0,                                     // step 5
-  
-  // Уменьшаем A на 1
-  instructions['DEC A'],                 // step 6
-  
-  // Устанавливаем курсор выполняемой инструкции
-  instructions['JMP'],                   // step 7
-  
-  // В значение 2
-  2                                      // step 8
+  instructions['SET A'],   // Ставим значения аккумулятора                 // step 0
+  10,                      // В 10                                         // step 1  
+  instructions['PRINT A'], // Выводим значение на экран                    // step 2 
+  instructions['IFN A'],   // Если A равно 0                               // step 3 
+  instructions['RET'],     // Программа завершается                        // step 4
+  0,                       // И возвращает 0                               // step 5
+  instructions['DEC A'],   // Уменьшаем A на 1                             // step 6
+  instructions['JMP'],     // Устанавливаем курсор выполняемой инструкции  // step 7
+  2                        // В значение 2                                 // step 8
 ];
 
 function execute(program) {
   let step = 0;
   let acc = 0;
+  let skipRet = false
 
   while(true) {
     switch(program[step]) {
@@ -52,15 +37,18 @@ function execute(program) {
         break;
   
       case instructions['IFN A']:
-        if (acc === 0) {
-          step++;
-        } else {
-          step += 3
-        }
+        acc !== 0 && (skipRet = true)
+        step++
         break;
   
       case instructions['RET']:
-        return 0;
+        if (!skipRet) {
+          return program[step + 1];
+        }
+        step +=2
+        skipRet = false
+        break;
+
   
       case instructions['DEC A']:
         acc--;
