@@ -64,36 +64,48 @@ class BCD {
     return (this.value & mask) >>> rightShft
   }
   
-  add(summand) {
-    let decimalA = this.num
-    let decimalB = summand
-    // console.log(decimalA, 'original A')
-    // console.log(decimalB, 'original B')
-    let bcdA = this.#decimalToBcd(decimalA)
-    let bcdB = this.#decimalToBcd(decimalB)
-    // console.log(binary(bcdA), 'BCD A')
-    // console.log(binary(bcdB), 'BCD B')
+  add(summand) {   
+    let bcdA = this.value
+    let bcdB = this.#decimalToBcd(summand)
 
-    let placeForMask = 4
+    if (bcdA === 0 || bcdB === 0) {
+      this.value = bcdA || bcdB
+      console.log(binary(this.value), 'RESULT')
+      return this.value
+    }
+
+    let tempSumShift = 4    
     let sum = 0
 
-    while (decimalA !== 0 && decimalB !== 0) {
-      const remainingA = (bcdA & this.#createMask(4, placeForMask)) >>> (placeForMask - 4)
-      const remainingB = (bcdB & this.#createMask(4, placeForMask)) >>> (placeForMask - 4)
+    while (bcdA !== 0 && bcdB !== 0) {
+      console.log(binary(bcdA), "BEFORE MASK A")
+      const maskA = bcdA & this.#createMask(4, 4) // Берем последние 4 бита (цифру) от слагаемого А
+      console.log(binary(maskA), "AFTER MASK A")
 
-      let tempSum = (this.binaryAddition(remainingA, remainingB))
+      console.log(binary(bcdB), "BEFORE MASK B")
+      const maskB = bcdB & this.#createMask(4, 4) // Берем последние 4 бита (цифру) от слагаемого B
+      console.log(binary(maskB), "AFTER MASK B")
 
-      if(tempSum > 9) {
+      let tempSum = (this.binaryAddition(maskA, maskB)) // Промежуточная сумма последних цифр слагаемых
+      console.log(binary(tempSum), "TEMP SUM")
+
+      if(tempSum > 9) { // Если промежуточная сумма последних цифр слагаемых > 9 прибавлем 6 (дополнение до 9)
         tempSum = this.binaryAddition(tempSum, 6)
+        console.log(binary(tempSum), "TEMP SUM > 6")
       }
 
-      tempSum <<= placeForMask - 4
-      sum = this.binaryAddition(sum, tempSum)
-      placeForMask += 4
-
-      decimalA = Math.floor(decimalA / 10)
-      decimalB = Math.floor(decimalB / 10)
+      tempSum <<= tempSumShift - 4 // Cдвигаем промежуточную сумму в нужный разряд
+      console.log(binary(tempSum), "TEMP SUM << 4")
+      sum = this.binaryAddition(sum, tempSum) // складываем промежуточную сумму с результатом прошлой итерации
+      console.log(binary(sum), "SUM + TEMP_SUM")
+      bcdA >>>= 4 // Cдвигаем биты слагаемого А чтобы цифры из следующего разряда оказались последними
+      console.log(binary(bcdA), "BCD A >>> 4")
+      bcdB >>>= 4 // Cдвигаем биты слагаемого B чтобы цифры из следующего разряда оказались последними
+      console.log(binary(bcdB), "BCD B >>> 4")
+      tempSumShift += 4 // Увеличаваем сдвиг (разряд) для промежуточной суммы
     }
+
+    console.log(binary(sum), 'RESULT')
     
     this.value = sum
     return this.value
@@ -121,6 +133,4 @@ class BCD {
 
 const n = new BCD(10);
 n.add(20)
-// n.add(30)
-
-console.log(binary(n.valueOf()))
+n.add(30)
