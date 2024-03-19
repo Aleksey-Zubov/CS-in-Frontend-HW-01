@@ -6,7 +6,7 @@ class BCD {
   
   constructor(num) {
     this.isNegative = false
-    this.value = 0
+    this.bcdValue = 0
     this.num = num
     this.lengthOfNumber = Math.floor(Math.log10(Math.abs(this.num))) + 1
     
@@ -18,15 +18,32 @@ class BCD {
       num *= -1
       this.isNegative = true
     }
+    let bcdNum = this.bcdValue
       
     const arrayOfDigits = Array.from(String(num), Number);
-    this.value = arrayOfDigits.reduce((acc, currentDigit) => {
+    bcdNum = arrayOfDigits.reduce((acc, currentDigit) => {
       const digit = this.isNegative ? 9 - currentDigit : currentDigit
       return (acc << 4) | digit
     }, 0);
 
-    return this.value
+    this.bcdValue = bcdNum
+    return bcdNum
   }
+
+  #bcdToDecimal(bcdNum) {
+    let tempBcd = bcdNum
+    let result = 0
+    let power = 0
+
+    while (tempBcd !== 0) {
+    const lastDigit = tempBcd & this.#createMask(4, 4)
+    result += lastDigit * (10 ** power)
+    power++
+    tempBcd >>>= 4
+    }
+
+    return result
+  } 
 
   #createMask(len, pos) {
     let n = ~0
@@ -53,7 +70,7 @@ class BCD {
   }
 
   valueOf() {
-    return this.value
+    return this.bcdValue
   }
 
   get(index) {
@@ -61,17 +78,21 @@ class BCD {
     const pos = 4 * (this.lengthOfNumber - idx)
     const mask = this.#createMask(4, pos)
     const rightShft = pos - 4
-    return (this.value & mask) >>> rightShft
+    return (this.bcdValue & mask) >>> rightShft
   }
   
-  add(summand) {   
-    let bcdA = this.value
+  add(summand) {
+    this.summand = summand
+    let bcdA = this.bcdValue
     let bcdB = this.#decimalToBcd(summand)
 
+    // console.log(binary(bcdA), "A")
+    // console.log(binary(bcdB), "B")
+
     if (bcdA === 0 || bcdB === 0) {
-      this.value = bcdA || bcdB
-      console.log(binary(this.value), 'RESULT')
-      return this.value
+      this.bcdValue = bcdA || bcdB
+      // console.log(binary(this.bcdValue), 'RESULT')
+      return this.bcdValue
     }
 
     let tempSumShift = 4    
@@ -79,72 +100,68 @@ class BCD {
 
     while ((bcdA !== 0) || (bcdB !== 0)) {
 
-      console.log(binary(bcdA), "BEFORE MASK A")
+      // console.log(binary(bcdA), "BEFORE MASK A")
       const maskA = bcdA & this.#createMask(4, 4) // Берем последние 4 бита (цифру) от слагаемого А
-      console.log(binary(maskA), "AFTER MASK A")
+      // console.log(binary(maskA), "AFTER MASK A")
 
-      console.log(binary(bcdB), "BEFORE MASK B")
+      // console.log(binary(bcdB), "BEFORE MASK B")
       const maskB = bcdB & this.#createMask(4, 4) // Берем последние 4 бита (цифру) от слагаемого B
-      console.log(binary(maskB), "AFTER MASK B")
+      // console.log(binary(maskB), "AFTER MASK B")
 
       let tempSum = (this.binaryAddition(maskA, maskB)) // Промежуточная сумма последних цифр слагаемых
-      console.log(binary(tempSum), "TEMP SUM")
+      // console.log(binary(tempSum), "TEMP SUM")
 
       if(tempSum > 9) { // Если промежуточная сумма последних цифр слагаемых > 9 прибавлем 6 (дополнение до 9)
         tempSum = this.binaryAddition(tempSum, 6)
-        console.log(binary(tempSum), "TEMP SUM > 6")
+        // console.log(binary(tempSum), "TEMP SUM > 6")
       }
 
       tempSum <<= tempSumShift - 4 // Cдвигаем промежуточную сумму в нужный разряд
-      console.log(binary(tempSum), "TEMP SUM << 4")
+      // console.log(binary(tempSum), "TEMP SUM << 4")
       sum = this.binaryAddition(sum, tempSum) // складываем промежуточную сумму с результатом прошлой итерации
-      console.log(binary(sum), "SUM + TEMP_SUM")
+      // console.log(binary(sum), "SUM + TEMP_SUM")
       bcdA >>>= 4 // Cдвигаем биты слагаемого А чтобы цифры из следующего разряда оказались последними
-      console.log(binary(bcdA), "BCD A >>> 4")
+      // console.log(binary(bcdA), "BCD A >>> 4")
       bcdB >>>= 4 // Cдвигаем биты слагаемого B чтобы цифры из следующего разряда оказались последними
-      console.log(binary(bcdB), "BCD B >>> 4")
+      // console.log(binary(bcdB), "BCD B >>> 4")
       tempSumShift += 4 // Увеличаваем сдвиг (разряд) для промежуточной суммы
 
-      console.log((bcdA !== 0) && (bcdB !== 0), "WHILE COND")
+      // console.log((bcdA !== 0) && (bcdB !== 0), "WHILE COND")
     }
 
-    console.log(binary(sum), 'RESULT')
+    // console.log(binary(sum), 'RESULT')
     
-    this.value = sum
-    return this.value
+    this.bcdValue = sum
+    return sum
   }
 
   substract(substracted) {
-    if (substracted < 0) {
-      return this.add(substracted * -1)
-    }
+    let subs = 99 - substracted
+    let sum = this.add(subs)
+    console.log(binary(sum))
   }
 
   multiply(multptiplier) {
-    if (multptiplier === 0) {
-      this.value = 0
-      return this.value
+    if (multptiplier === 0 || this.bcdValue === 0) {
+      this.bcdValue = 0
+      return 0
     }
- 
-    let result = this.value
+    let decimalValue = this.#bcdToDecimal(this.bcdValue)
     let iterator = multptiplier - 1
-
+    let result = 0
+  
     while (iterator > 0) {
-      result = this.binaryAddition(this.value, result)
+      result = this.add(decimalValue)
       iterator--
     }
 
-    this.value = result
-    return this.value
+    this.bcdValue = result
+    return result
   }
 
 }
 
-const n = new BCD(3);
+const n = new BCD(56);
 
-n.multiply(4)
+n.substract(34)
 
-
-
-
-console.log(binary(n.valueOf()))
