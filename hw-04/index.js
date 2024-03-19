@@ -77,7 +77,8 @@ class BCD {
     let tempSumShift = 4    
     let sum = 0
 
-    while (bcdA !== 0 && bcdB !== 0) {
+    while ((bcdA !== 0) || (bcdB !== 0)) {
+
       console.log(binary(bcdA), "BEFORE MASK A")
       const maskA = bcdA & this.#createMask(4, 4) // Берем последние 4 бита (цифру) от слагаемого А
       console.log(binary(maskA), "AFTER MASK A")
@@ -103,6 +104,8 @@ class BCD {
       bcdB >>>= 4 // Cдвигаем биты слагаемого B чтобы цифры из следующего разряда оказались последними
       console.log(binary(bcdB), "BCD B >>> 4")
       tempSumShift += 4 // Увеличаваем сдвиг (разряд) для промежуточной суммы
+
+      console.log((bcdA !== 0) && (bcdB !== 0), "WHILE COND")
     }
 
     console.log(binary(sum), 'RESULT')
@@ -118,6 +121,11 @@ class BCD {
   }
 
   multiply(multptiplier) {
+    if (multptiplier === 0) {
+      this.value = 0
+      return this.value
+    }
+ 
     let result = this.value
     let iterator = multptiplier - 1
 
@@ -125,12 +133,18 @@ class BCD {
       result = this.binaryAddition(this.value, result)
       iterator--
     }
+
     this.value = result
     return this.value
   }
 
 }
 
-const n = new BCD(10);
-n.add(20)
-n.add(30)
+const n = new BCD(3);
+
+n.multiply(4)
+
+
+
+
+console.log(binary(n.valueOf()))
