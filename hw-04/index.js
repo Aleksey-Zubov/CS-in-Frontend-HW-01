@@ -18,14 +18,20 @@ class BCD {
       num *= -1
       this.isNegative = true
     }
-    let bcdNum = this.bcdValue
-      
-    const arrayOfDigits = Array.from(String(num), Number);
-    bcdNum = arrayOfDigits.reduce((acc, currentDigit) => {
-      const digit = this.isNegative ? 9 - currentDigit : currentDigit
-      return (acc << 4) | digit
-    }, 0);
+    let bcdNum = 0
+    let shiftForRemaining = 0
+    let i = 1
 
+    while (num > 0) {
+      let remaining = this.isNegative ? 9 - (num % 10) : num % 10
+      remaining <<= shiftForRemaining
+      bcdNum |= remaining
+      num = Math.floor(num / 10)     
+      shiftForRemaining += 4
+      i++
+    }
+
+    
     this.bcdValue = bcdNum
     return bcdNum
   }
@@ -70,6 +76,8 @@ class BCD {
   }
 
   valueOf() {
+
+
     return this.bcdValue
   }
 
@@ -82,7 +90,6 @@ class BCD {
   }
   
   add(summand) {
-    this.summand = summand
     let bcdA = this.bcdValue
     let bcdB = this.#decimalToBcd(summand)
 
@@ -161,7 +168,7 @@ class BCD {
 
 }
 
-const n = new BCD(56);
+const n = new BCD(1234567);
 
-n.substract(34)
+console.log(binary(n.valueOf()))
 
