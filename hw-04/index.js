@@ -34,9 +34,7 @@ class BCD {
         tempArr[0] |= negativeBit 
       }
 
-      if (i !== 0 && i % 7 === 0) { // На каждой 7ой итерации простовляем бит заполнености, увеличиваем индекс последней ячейки и добавляем ячейку
-        let overBit = 1 << 30        
-        tempArr[numbersCell] |= overBit
+      if (i !== 0 && i % 7 === 0) { // На каждой 8ой итерации добавляем ячейку и увеличиваем индекс последней ячейки
         numbersCell++
         tempArr[numbersCell] = 0
       }
@@ -73,6 +71,8 @@ class BCD {
 
       if (shiftFotLastCell === 24) {                                              // Сдвиг цифры для последней ячейки, сбрасываем после каждой 7-ой итерации
         shiftFotLastCell = 0
+        let overBit = 1 << 30                                                     // Добавляем бит наполнености ячейки
+        tempArr[numbersCell] |= overBit
       } else {
         shiftFotLastCell += 4
       }
@@ -83,15 +83,6 @@ class BCD {
 
     this.numbers = tempArr
     return tempArr
-  }
-
-  updateFullCells(cellBcd, newBcd) {
-    
-    newBcd <<= 24
-    cellBcd |= cellInfo
-    cellBcd |= newBcd
- 
-   return cellBcd
   }
 
   #bcdToDecimal(bcdNum) {
@@ -298,25 +289,6 @@ class BCD {
 
 }
 
-const n = new BCD(1234567_1234567_1234567n);
+const n = new BCD(1234567_1234567_1234567_1234n);
 
 n.numbers.forEach((bcd) =>  console.log(binary(bcd)))
-
-// n.shiftNumbers(n.numbers)
-
-// n.add(12345678)
-
-
-
-
-// console.log(n.valueOf())
-// console.log(n.valueOf().toString(2))
-// console.log(0b0000_0001_0010_0011_0100_0101_0110_0111_1000_1001_0000)
-// console.log(78187493520..toString(2))
-
-// new BCD(123456789) 
-// numbers должен содержать число в фомате BCD разбитое по 7 знаков:
-// 0b0000_0001_0010_0011_0100_0101_0110_0111 numbers[0]
-// 0b0000_0000_0000_0000_0000_0000_1000_1001 numbers[1]
-// valueOf должен возвращать склейку числа bcd из всех ячеек которые занимает:
-// 0b0000_0001_0010_0011_0100_0101_0110_0111_1000_1001 --> 4886718345
