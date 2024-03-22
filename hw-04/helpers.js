@@ -3,3 +3,4 @@ exports.binary = function(num)  {
   return '0b' + str.padStart(32, '0').replace(/(.{4})(?!$)/g, '$1_');
 }
 
+
