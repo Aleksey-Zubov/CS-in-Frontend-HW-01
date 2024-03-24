@@ -158,7 +158,23 @@ class BCD {
     return res
   }
 
-  get(enterIndex) {}
+  get(enterIndex) {
+    let numbersIndex = 0
+    let digitIndex = 0
+
+    if (enterIndex < 0) {
+      numbersIndex = Math.floor(enterIndex / 7) + n.numbers.length
+      digitIndex = 6 + ((enterIndex + 1) % 7)
+    } else {
+      numbersIndex = Math.floor(enterIndex / 7)
+      digitIndex = enterIndex % 7
+    } 
+
+    let pos = 28 - (digitIndex * 4)
+    let mask = this.numbers[numbersIndex] & this.#createMask(4, pos)
+
+    return mask >> pos - 4    
+  }
   
   add(summand) {
     let bcdA_Arr = this.numbers
@@ -304,11 +320,13 @@ class BCD {
 
 }
 
-const n = new BCD(65536n);
+const n = new BCD(1234567_1234567_1234567n);
 
 n.numbers.forEach((bcd, i) =>  console.log(binary(bcd), `numbers [${i}]`))
 
-console.log(binary64(n.valueOf()), 'valueOf')
+console.log(binary(n.get(-21)))
+
+// console.log(binary64(n.valueOf()), 'valueOf')
 
 
 // new BCD(1234567_1234567n);
@@ -325,3 +343,8 @@ console.log(binary64(n.valueOf()), 'valueOf')
 // console.log(binary(a))
 // console.log(binary(Math.floor(a / 2)), 'Math.floor(a / 2)')
 // console.log(binary(a >> 2), 'a >> 2')
+
+
+
+
+
