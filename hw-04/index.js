@@ -1,4 +1,4 @@
-const { binary } = require('./helpers')
+const { binary, binary64 } = require('./helpers')
 
 
 class BCD {
@@ -126,16 +126,34 @@ class BCD {
 
   valueOf() {
     let res = BigInt(this.numbers[0])
+    let overBit = res & BigInt(this.#createMask(1, 31))                     // находим бит заполнености
+    res ^= overBit                                                          // Убираем бит заполнености
+     
+    if (this.numbers.length < 2) {   
+      return res
+    } 
 
-    if (this.numbers.length <= 1) return res
-
-    for (let i = 1; i < this.numbers.length; i++) { // Здесь работаем по алгоритму представления числа в двоичном виде чтобы узнать на сколько бит нужно сдвинуть число из первой ячейки numbers
-      let tempNum = this.numbers[i]                 // Число из которого будем доставать биты
-        while (tempNum > 0) {
-          res <<= 1n                                // Сдвигаем двоичное число из первой ячейки
-          tempNum = Math.floor(tempNum / 2)         // Делю число на 2 согласно алгоритму
+    for (let i = 1; i < this.numbers.length; i++) {                         //Обходим numbers начиная со 2-го элемента 
+      let tempNum = BigInt(this.numbers[i])                
+      let isCellIsFull = (tempNum & BigInt(this.#createMask(1, 31))) > 0n
+      if (isCellIsFull) {                                                   // Если ячейка полна 
+        let overBit = tempNum & BigInt(this.#createMask(1, 31)) 
+        tempNum ^= overBit                                                  // убираем бит заполнености
+        res <<= 28n                                                         // двигаем промежуточный результат на 28 бит
+        res ^= tempNum                                                      // добавляем биты из ячейки к промежуточному резуьтату
+      } else {                                                              // Если ячейка не полная
+        let i = 0n
+        let lastNumber = 0n                                                 // Сюда будем сохранять число из последней (неполной) ячейки
+        while (tempNum > 0n) {                                              // Двигаем биты промежуточного результата
+          let lastDigit = tempNum & BigInt(this.#createMask(4, 4))          // берем послденюю цифру из ячейки
+          lastDigit <<= i * 4n                                              // сдвигаем ее каждый итерацию на + 4 бита
+          tempNum >>= 4n                                                    // убираем 4 битам 
+          lastNumber |= lastDigit                                           // сохрянаем последнюю цифру
+          res <<= 4n                                                        // двигаем промежуточный результат на 4 бита на каждой итерации
+          i++
         }
-        res = res ^ BigInt(this.numbers[i])         // С помощью XOR добавляю биты к числу из первой ячейки
+        res ^= lastNumber
+      }
     }
     return res
   }
@@ -193,9 +211,6 @@ class BCD {
         console.log(binary(bcdB), "BCD B >>> 4")
         tempSumShift += 4 // Увеличаваем сдвиг (разряд) для промежуточной суммы
       }
-      
-      
-
       
       main_i--
       a_i_last--
@@ -289,6 +304,24 @@ class BCD {
 
 }
 
-const n = new BCD(1234567_1234567_1234567_1234n);
+const n = new BCD(65536n);
 
-n.numbers.forEach((bcd) =>  console.log(binary(bcd)))
+n.numbers.forEach((bcd, i) =>  console.log(binary(bcd), `numbers [${i}]`))
+
+console.log(binary64(n.valueOf()), 'valueOf')
+
+
+// new BCD(1234567_1234567n);
+// 0001_0010_0011_0100_0101_0110_0111_0001_0010_0011_0100_0101_0110_0111
+// 0001_0010_0011_0100_0101_0110_0111_0001_0010_0011_0100_0101_0110_0111
+
+// 0b1100_1000_0111_0110_0101_0100_0011_0010
+
+// -1110111100010011010101111001110
+// -11101111000100110101011110011010111100010011010101111001110
+
+// let a = 0b0001_0010_0011_0100
+
+// console.log(binary(a))
+// console.log(binary(Math.floor(a / 2)), 'Math.floor(a / 2)')
+// console.log(binary(a >> 2), 'a >> 2')

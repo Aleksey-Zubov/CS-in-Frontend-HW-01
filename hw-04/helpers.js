@@ -4,3 +4,7 @@ exports.binary = function(num)  {
 }
 
 
+exports.binary64 = function(num)  {
+  const str = new BigUint64Array([num])[0].toString(2);
+  return '0b' + str.padStart(64, '0').replace(/(.{4})(?!$)/g, '$1_');
+}
