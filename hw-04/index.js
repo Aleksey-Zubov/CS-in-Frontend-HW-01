@@ -5,10 +5,7 @@ class BCD {
   numbers = [];
   
   constructor(num) {
-    this.isNegative = false
-    this.bcdValue = 0
-    this.num = num
-    
+    this.isNegative = false    
     this.#decimalToBcd(num)
   }
 
@@ -38,8 +35,7 @@ class BCD {
         numbersCell++
         tempArr[numbersCell] = 0
       }
-
-      
+     
       if (i >= 7) {
         let k = tempArr.length - 1
         let lastDigitFromPrevCell = 0
@@ -84,21 +80,6 @@ class BCD {
     this.numbers = tempArr
     return tempArr
   }
-
-  #bcdToDecimal(bcdNum) {
-    let tempBcd = bcdNum
-    let result = 0
-    let power = 0
-
-    while (tempBcd !== 0) {
-    const lastDigit = tempBcd & this.#createMask(4, 4)
-    result += lastDigit * (10 ** power)
-    power++
-    tempBcd >>>= 4
-    }
-
-    return result
-  } 
 
   #createMask(len, pos) {
     let n = ~0
@@ -178,11 +159,7 @@ class BCD {
   
   add(summand) {
     let bcdA_Arr = this.numbers
-    let bcdB_Arr = this.#decimalToBcd(summand) // summand
-    bcdA_Arr.forEach((bcd, index)=> console.log(binary(bcd), `BCD_A_ARR_[${index}]`))
-    bcdB_Arr.forEach((bcd, index)=> console.log(binary(bcd), `BCD_B_ARR_[${index}]`))
-    console.log('----------------')
-
+    let bcdB_Arr = this.#decimalToBcd(BigInt(summand)) 
 
     let a_length = bcdA_Arr.length
     let b_length = bcdB_Arr.length
@@ -190,161 +167,48 @@ class BCD {
     let b_i_last = bcdB_Arr.length - 1
     let main_i = a_length >= b_length ? a_length - 1 : b_length - 1
 
-    let sum = []
+    let result = [0]
     let tempSumShift = 4
 
-    while (main_i >= 0) { // Цикл итераций по ячейкам самого длинного из массивов А и В
-      let bcdA = bcdA_Arr[a_i_last]
-      let bcdB = bcdB_Arr[b_i_last]
-
-      
+    while (main_i >= 0) {                                   // Цикл итераций по ячейкам самого длинного из массивов А и В
+      let bcdA = bcdA_Arr[a_i_last] << 4 >> 4               // Убираем биты заполнености
+      let bcdB = bcdB_Arr[b_i_last] << 4 >> 4
 
       while ((bcdA !== 0) || (bcdB !== 0)) {
+        const maskA = bcdA & this.#createMask(4, 4)         // Берем последние 4 бита (цифру) от слагаемого А
+        const maskB = bcdB & this.#createMask(4, 4)         // Берем последние 4 бита (цифру) от слагаемого B
 
-        console.log(binary(bcdA), "BEFORE MASK A")
-        const maskA = bcdA & this.#createMask(4, 4) // Берем последние 4 бита (цифру) от слагаемого А
-        console.log(binary(maskA), "AFTER MASK A")
+        let tempSum = (this.binaryAddition(maskA, maskB))   // Промежуточная сумма последних цифр слагаемых
 
-        console.log(binary(bcdB), "BEFORE MASK B")
-        const maskB = bcdB & this.#createMask(4, 4) // Берем последние 4 бита (цифру) от слагаемого B
-        console.log(binary(maskB), "AFTER MASK B")
-
-        let tempSum = (this.binaryAddition(maskA, maskB)) // Промежуточная сумма последних цифр слагаемых
-        console.log(binary(tempSum), "TEMP SUM")
-
-        if(tempSum > 9) { // Если промежуточная сумма последних цифр слагаемых > 9 прибавлем 6 (дополнение до 9)
+        if(tempSum > 9) {                                   // Если промежуточная сумма последних цифр слагаемых > 9 прибавлем 6 (дополнение до 9)
           tempSum = this.binaryAddition(tempSum, 6)
-          console.log(binary(tempSum), "TEMP SUM > 6")
         }
 
-        tempSum <<= tempSumShift - 4 // Cдвигаем промежуточную сумму в нужный разряд
-        console.log(binary(tempSum), "TEMP SUM << 4")
-        sum = this.binaryAddition(sum, tempSum) // складываем промежуточную сумму с результатом прошлой итерации
-        console.log(binary(sum), "------SUM + TEMP_SUM--------")
-        bcdA >>>= 4 // Cдвигаем биты слагаемого А чтобы цифры из следующего разряда оказались последними
-        console.log(binary(bcdA), "BCD A >>> 4")
-        bcdB >>>= 4 // Cдвигаем биты слагаемого B чтобы цифры из следующего разряда оказались последними
-        console.log(binary(bcdB), "BCD B >>> 4")
-        tempSumShift += 4 // Увеличаваем сдвиг (разряд) для промежуточной суммы
+        tempSum <<= tempSumShift - 4                        // Cдвигаем промежуточную сумму в нужный разряд
+        result[0] = this.binaryAddition(result[0], tempSum) // складываем промежуточную сумму с результатом прошлой итерации
+        bcdA >>>= 4                                         // Cдвигаем биты слагаемого А чтобы цифры из следующего разряда оказались последними
+        bcdB >>>= 4                                         // Cдвигаем биты слагаемого B чтобы цифры из следующего разряда оказались последними
+        tempSumShift += 4                                   // Увеличаваем сдвиг (разряд) для промежуточной суммы
       }
       
       main_i--
       a_i_last--
       b_i_last--
     }
-
-    
-
-    console.log(binary(sum))
-    // let bcdA = this.bcdValue
-    // let bcdB = this.#decimalToBcd(summand)
-
-    // console.log(binary(bcdA), "A")
-    // console.log(binary(bcdB), "B")
-
-    // if (bcdA === 0 || bcdB === 0) {
-    //   this.bcdValue = bcdA || bcdB
-    //   // console.log(binary(this.bcdValue), 'RESULT')
-    //   return this.bcdValue
-    // }
-
-    // let tempSumShift = 4    
-    // let sum = 0
-
-    // while ((bcdA !== 0) || (bcdB !== 0)) {
-
-    //   // console.log(binary(bcdA), "BEFORE MASK A")
-    //   const maskA = bcdA & this.#createMask(4, 4) // Берем последние 4 бита (цифру) от слагаемого А
-    //   // console.log(binary(maskA), "AFTER MASK A")
-
-    //   // console.log(binary(bcdB), "BEFORE MASK B")
-    //   const maskB = bcdB & this.#createMask(4, 4) // Берем последние 4 бита (цифру) от слагаемого B
-    //   // console.log(binary(maskB), "AFTER MASK B")
-
-    //   let tempSum = (this.binaryAddition(maskA, maskB)) // Промежуточная сумма последних цифр слагаемых
-    //   // console.log(binary(tempSum), "TEMP SUM")
-
-    //   if(tempSum > 9) { // Если промежуточная сумма последних цифр слагаемых > 9 прибавлем 6 (дополнение до 9)
-    //     tempSum = this.binaryAddition(tempSum, 6)
-    //     // console.log(binary(tempSum), "TEMP SUM > 6")
-    //   }
-
-    //   tempSum <<= tempSumShift - 4 // Cдвигаем промежуточную сумму в нужный разряд
-    //   // console.log(binary(tempSum), "TEMP SUM << 4")
-    //   sum = this.binaryAddition(sum, tempSum) // складываем промежуточную сумму с результатом прошлой итерации
-    //   // console.log(binary(sum), "SUM + TEMP_SUM")
-    //   bcdA >>>= 4 // Cдвигаем биты слагаемого А чтобы цифры из следующего разряда оказались последними
-    //   // console.log(binary(bcdA), "BCD A >>> 4")
-    //   bcdB >>>= 4 // Cдвигаем биты слагаемого B чтобы цифры из следующего разряда оказались последними
-    //   // console.log(binary(bcdB), "BCD B >>> 4")
-    //   tempSumShift += 4 // Увеличаваем сдвиг (разряд) для промежуточной суммы
-
-    //   // console.log((bcdA !== 0) && (bcdB !== 0), "WHILE COND")
-    // }
-
-    // console.log(binary(sum), 'RESULT')
-    
-    // this.bcdValue = sum
-    // return sum
-  }
-
-  substract(substracted) {
-    let subs = 99 - substracted
-    let sum = this.add(subs)
-    console.log(binary(sum))
-  }
-
-  multiply(multptiplier) {
-    if (multptiplier === 0 || this.bcdValue === 0) {
-      this.bcdValue = 0
-      return 0
-    }
-    let decimalValue = this.#bcdToDecimal(this.bcdValue)
-    let iterator = multptiplier - 1
-    let result = 0
   
-    while (iterator > 0) {
-      result = this.add(decimalValue)
-      iterator--
-    }
-
-    this.bcdValue = result
+    result.forEach((bcd, i) => console.log(binary(bcd), `result [${i}]`))
+    this.numbers = result
     return result
   }
-
-  shiftNumbers(arr) {
-    arr.forEach((bcd, i) => console.log(binary(bcd), `[${i}]`))
-
-    
-  }
-
 }
 
-const n = new BCD(1234567_1234567_1234567n);
+const n = new BCD(1234n);
 
-n.numbers.forEach((bcd, i) =>  console.log(binary(bcd), `numbers [${i}]`))
 
-console.log(binary(n.get(-21)))
+// n.numbers.forEach((bcd, i) =>  console.log(binary(bcd), `numbers [${i}]`))
 
 // console.log(binary64(n.valueOf()), 'valueOf')
 
+// console.log(binary(n.get(-21)))
 
-// new BCD(1234567_1234567n);
-// 0001_0010_0011_0100_0101_0110_0111_0001_0010_0011_0100_0101_0110_0111
-// 0001_0010_0011_0100_0101_0110_0111_0001_0010_0011_0100_0101_0110_0111
-
-// 0b1100_1000_0111_0110_0101_0100_0011_0010
-
-// -1110111100010011010101111001110
-// -11101111000100110101011110011010111100010011010101111001110
-
-// let a = 0b0001_0010_0011_0100
-
-// console.log(binary(a))
-// console.log(binary(Math.floor(a / 2)), 'Math.floor(a / 2)')
-// console.log(binary(a >> 2), 'a >> 2')
-
-
-
-
-
+// n.add(1234)
