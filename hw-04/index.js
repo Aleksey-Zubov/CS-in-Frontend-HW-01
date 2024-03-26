@@ -106,9 +106,9 @@ class BCD {
   }
 
   valueOf() {
-    let res = BigInt(this.numbers[0])
-    let overBit = res & BigInt(this.#createMask(1, 31))                     // находим бит заполнености
-    res ^= overBit                                                          // Убираем бит заполнености
+    let res = this.numbers[0]
+    res = (res << 4) >>> 4
+    res = BigInt(res)
      
     if (this.numbers.length < 2) {   
       return res
@@ -139,12 +139,14 @@ class BCD {
     return res
   }
 
-  get(enterIndex) {
+  get(enterIndex) { // Есть баг, не работает с неполными ячейками
     let numbersIndex = 0
     let digitIndex = 0
+    let tempNumbers = this.numbers
+    tempNumbers[0] = (tempNumbers[0] << 4) >>> 4
 
     if (enterIndex < 0) {
-      numbersIndex = Math.floor(enterIndex / 7) + n.numbers.length
+      numbersIndex = Math.floor(enterIndex / 7) + tempNumbers.length
       digitIndex = 6 + ((enterIndex + 1) % 7)
     } else {
       numbersIndex = Math.floor(enterIndex / 7)
@@ -152,7 +154,8 @@ class BCD {
     } 
 
     let pos = 28 - (digitIndex * 4)
-    let mask = this.numbers[numbersIndex] & this.#createMask(4, pos)
+    let mask = tempNumbers[numbersIndex] & this.#createMask(4, pos)
+    console.log(mask)
 
     return mask >> pos - 4    
   }
@@ -202,13 +205,13 @@ class BCD {
   }
 }
 
-const n = new BCD(1234n);
+const n = new BCD(-168n);
 
 
 // n.numbers.forEach((bcd, i) =>  console.log(binary(bcd), `numbers [${i}]`))
 
 // console.log(binary64(n.valueOf()), 'valueOf')
 
-// console.log(binary(n.get(-21)))
+// console.log(binary(n.get(0))) Есть баг, не работает с неполными ячейками
 
 // n.add(1234)
