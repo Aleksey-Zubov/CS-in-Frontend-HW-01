@@ -8,41 +8,46 @@ const persons = [
 ];
 
 
-function indexOf(arr: any[], cb: any) {
+function indexOf(arr: any[], comparator: any) {
   let first = 0;
   let last = arr.length -1
   let position = -1
-  let middle
 
   while (first <= last) {
-    middle = Math.floor((first + last) / 2)
-    if (cb(arr[middle]) === 0) {
-      position = middle
-      last = middle - 1      
-    } else if (cb(arr[middle]) < 0) {
-      first = middle + 1
-    } else if (cb(arr[middle]) > 0) {
+   const middle = Math.floor((first + last) / 2)
+   const comp = comparator(arr[middle])
+
+    if (comp >= 0) {
       last = middle - 1
+
+      if (comp === 0) {
+        position = middle
+      }
+
+    } else {
+      first = middle + 1
     }
   }
   console.log(position)
   return position
 }
 
-function lastIndexOf(arr: any[], cb: any) {
+function lastIndexOf(arr: any[], comparator: Function) {
   let first = 0;
   let last = arr.length -1
   let position = -1
-  let middle
 
   while (first <= last) {
-    middle = Math.floor((first + last) / 2)
-    if (cb(arr[middle]) === 0) {
-      position = middle
-      first = middle + 1      
-    } else if (cb(arr[middle]) < 0) {
+    const middle = Math.floor((first + last) / 2)
+    const comp = comparator(arr[middle])
+
+    if (comp <= 0) {
       first = middle + 1
-    } else if (cb(arr[middle]) > 0) {
+
+      if (comp === 0) {
+        position = middle
+      }
+    } else {
       last = middle - 1
     }
   }
